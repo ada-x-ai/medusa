@@ -146,7 +146,7 @@
           "behavior": "Reads the first existing Store and creates one with default EUR currency only if absent."
         }
       ],
-      "acceptance_gap": "Parent must verify the actual authenticated /admin/stores response and native Admin page after deployment."
+      "acceptance_gap": "Closed: live authenticated /admin/stores returned one store and browser Admin loaded normally."
     },
     "migration_tls_diagnosis": {
       "observed_by_parent": "Private Railway PostgreSQL 17-alpine service has no TLS; initial migrations table creation succeeded, separate module migration SELECT 1 probe timed out.",
@@ -179,10 +179,9 @@
     }
   },
   "remaining_risk": [
-    "No local Docker daemon available: image runtime and database migration must be verified by the parent on isolated Railway resources.",
-    "Native login, volume persistence and live readiness are separate parent acceptance steps.",
-    "Actual payment providers, storefront and production deployment are not configured or tested.",
-    "Local file provider is for the isolated development instance only."
+    "Actual payment/refund processing, storefront, email and production deployment are not configured or tested.",
+    "Media volume is mounted; full upload/download and disaster-recovery testing not performed.",
+    "Local Docker unavailable; actual Railway-built image, native CLI migration and runtime were verified instead."
   ],
   "deployment_configuration": {
     "mechanism": "Explicit Railway service settings, verified from effective deployment manifest",
@@ -191,5 +190,21 @@
     "healthcheck": "/health",
     "predeploy": "pnpm exec medusa db:migrate --skip-scripts --execute-safe-links --execute-safe-search",
     "legacy_config": "Removed newly introduced railway.json; not required by image or runtime"
+  },
+  "liveVerification": {
+    "receipt": "deploy/verification.json",
+    "deployment": "8edfc54e-9b4a-4ff2-84ee-a970a9cc63f8",
+    "health": 200,
+    "nativeLogin": 200,
+    "anonymousAdmin": 401,
+    "counts": {
+      "stores": 1,
+      "products": 0,
+      "orders": 0,
+      "users": 1
+    },
+    "browser": "actual Hub click, native login, orders/products and restart reload passed",
+    "bootstrapVariablesRemoved": true,
+    "existingProductionDeploymentsUnchanged": 16
   }
 }

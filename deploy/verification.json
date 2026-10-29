@@ -1,0 +1,53 @@
+{
+  "verifiedAt": "2026-10-29T19:55:40.155426+00:00",
+  "project": "Hub",
+  "projectId": "e5d3e22b-d8ad-445d-94e7-5ce832240098",
+  "environment": "dev",
+  "environmentId": "65bc57db-0d2f-4774-a72f-baa17ded85bc",
+  "services": {
+    "postgres": "0ea79834-b580-4934-8daa-00693a1b40b4",
+    "redis": "a82efae5-c1ec-4747-b5ab-67a532e65510",
+    "medusa": "07b3a245-46a8-492c-8330-e0ae93cb9508"
+  },
+  "medusa": {
+    "origin": "https://hub-medusa-dev.up.railway.app",
+    "adminUrl": "https://hub-medusa-dev.up.railway.app/app",
+    "deploymentId": "8edfc54e-9b4a-4ff2-84ee-a970a9cc63f8",
+    "sourceCommit": "8b88b075b1c1d94ff4ea019aa4e96f638f54e3c1",
+    "imageDigest": "sha256:42be688a67432a319843723780774cf525b68a4540bbb823b43556d8ff8fa81d",
+    "health": 200,
+    "nativeLogin": 200,
+    "anonymousAdmin": 401,
+    "counts": {
+      "stores": 1,
+      "products": 0,
+      "orders": 0,
+      "users": 1
+    },
+    "bootstrapVariablesRemoved": true,
+    "migrationOnlyPredeploy": true
+  },
+  "console": {
+    "url": "https://hub-dev-console-dev.up.railway.app/console/systems",
+    "deploymentId": "ec8e87eb-8cfa-47e9-80f7-41a7967853c2",
+    "sourceCommit": "24b3c97cd5bafc6a8314691f8c32a6bf091e4827",
+    "medusaLink": "https://hub-medusa-dev.up.railway.app/app",
+    "target": "_blank",
+    "rel": "noopener noreferrer"
+  },
+  "preservation": {
+    "productionServicesUnchanged": 16,
+    "developmentApiDeploymentUnchanged": {
+      "id": "e7aac797-4e70-4188-bdfc-6e95d75bf54f",
+      "status": "SUCCESS"
+    },
+    "developmentApiBusinessVariablesUnchanged": true,
+    "automaticServiceDomainVariableAdded": true
+  },
+  "scope": {
+    "SSO": false,
+    "storefrontDeployed": false,
+    "paymentCredentialsConfigured": false,
+    "HubOrderPaymentRefundChanges": false
+  }
+}
