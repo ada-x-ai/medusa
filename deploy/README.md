@@ -17,7 +17,7 @@ Provide an isolated PostgreSQL database and Redis service. Never use Hub's busin
 | Variable | Value |
 | --- | --- |
 | `NODE_ENV` | `production` (runtime validation mode, not a production business environment) |
-| `DATABASE_URL` | Private connection to the independent Medusa database |
+| `DATABASE_URL` | Private connection to the independent Medusa database; use explicit `sslmode=disable` for the private Railway PostgreSQL service |
 | `REDIS_URL` | Private connection to the independent Medusa Redis |
 | `MEDUSA_PUBLIC_URL` | Public HTTPS origin of this Medusa instance |
 | `JWT_SECRET` | Independent random secret, at least 32 characters |
@@ -28,19 +28,23 @@ Provide an isolated PostgreSQL database and Redis service. Never use Hub's busin
 
 Admin and authentication CORS are restricted to the `MEDUSA_PUBLIC_URL` origin. Native commerce access and credentials remain independent from Hub.
 
+The isolated Railway PostgreSQL service uses a private network connection without TLS. Set the database URL's `sslmode` query parameter explicitly to `disable` for this service. Medusa's migration driver otherwise treats a non-local hostname as a TLS endpoint even when the initial shared connection succeeded, which can produce a misleading migration `SELECT 1` timeout. Keep TLS enabled with the appropriate verification settings for public or managed database connections; do not disable SSL globally or increase migration timeouts to conceal this mismatch.
+
 The isolated development instance runs one replica in Medusa's `shared` server/worker mode. Redis backs events, durable workflows and locking. Before increasing replicas or treating the service as a production store, configure separate server/worker deployment and shared object storage.
 
 Mount persistent media storage at `/app/apps/backend/.medusa/server/static`. The entrypoint assigns the mounted directory to the `node` user and immediately starts the process as that user. The local file provider is used only for this isolated development instance; use an object-storage provider for production.
 
-The Railway pre-deploy command is:
+Configure the Railway service explicitly: Dockerfile builder, root `Dockerfile`, one replica, `/health` health check with a 300-second timeout, restart on failure with three retries, and the following pre-deploy command. Read back the effective deployment manifest before accepting a release; this repository does not depend on deprecated Config as Code files.
+
+The normal pre-deploy command is:
 
 ```sh
 pnpm exec medusa db:migrate --skip-scripts --execute-safe-links --execute-safe-search
 ```
 
-`--skip-scripts` deliberately excludes the upstream starter's automatic demo-product seed. No existing Hub database or store is migrated. The normal start command is `pnpm exec medusa start`; `/health` is the readiness endpoint and `/app` is the native Admin.
+`--skip-scripts` deliberately excludes the upstream starter's automatic demo-product seed. The installed Medusa loader still runs its own `createDefaultsWorkflow` on startup, creating a default Store, sales channel and publishable key only when absent; the native default Store currency is EUR. A second custom initializer is unnecessary. No existing Hub database or store is migrated. The normal start command is `pnpm exec medusa start`; `/health` is the readiness endpoint and `/app` is the native Admin.
 
-Create the first operator through Medusa's native user command using private, independently generated credentials. Do not commit or print the credentials. Actual payment providers remain unconfigured until the merchant account and intended payment environment are explicitly selected.
+Create the first operator through Medusa's native user command as a separate, one-time provisioning step using private, independently generated credentials. If supplying credentials through temporary service environment variables, invoke an explicit shell to expand them; do not append a bare shell chain to a CLI command. Remove the temporary variables and restore the migration-only pre-deploy command before the normal runtime rollout. Do not commit or print the credentials. Actual payment providers remain unconfigured until the merchant account and intended payment environment are explicitly selected.
 
 ## Verification
 

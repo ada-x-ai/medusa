@@ -43,6 +43,13 @@
       "file": "apps/backend/src/lib/__tests__/runtime-environment.unit.spec.ts:11",
       "role": "test",
       "change": "added"
+    },
+    {
+      "symbol": "native createDefaultsWorkflow",
+      "package": "@medusajs/medusa@2.22.1 -> @medusajs/core-flows@2.22.1",
+      "file": "dist/loaders/index.js:139 -> dist/defaults/workflows/create-defaults.js:27",
+      "role": "external dependency",
+      "change": "unchanged context"
     }
   ],
   "edges": [
@@ -75,6 +82,12 @@
       "from": "Medusa configuration",
       "type": "persists",
       "to": "media volume privilege drop"
+    },
+    {
+      "from": "Medusa CLI build/start",
+      "type": "calls",
+      "to": "native createDefaultsWorkflow",
+      "verified_by": "Installed loader/default workflow source; live Store verification remains parent step"
     }
   ],
   "verification": [
@@ -107,12 +120,76 @@
     "first_pass": "No commerce API or core changes; default seeds are explicitly skipped. Existing storefront and upstream lockfile untouched. Runtime secrets independent and minimum 32 characters.",
     "fixed_finding": "Explicitly preserve backend CLI bin PATH in compiled working directory. Use the actual telemetry variable MEDUSA_DISABLE_TELEMETRY.",
     "second_pass": "All authored source under 400 lines. Frozen packages unchanged. No Hub billing imports, credentials, transaction mapping or SSO added. Start and migration use the same compiled config; persistent static directory assigned to node before dropping privilege.",
-    "open_findings": []
+    "open_findings": [],
+    "rebutted_finding": {
+      "claim": "Skipping upstream data-migration scripts leaves no Store and makes Admin unusable.",
+      "result": "Not supported by the installed owning code. No custom initializer added.",
+      "evidence": [
+        {
+          "package": "@medusajs/medusa@2.22.1",
+          "file": "dist/loaders/index.js:139",
+          "behavior": "Unconditionally invokes createDefaultsWorkflow(container).run() after the entrypoint conditional."
+        },
+        {
+          "package": "@medusajs/medusa@2.22.1",
+          "file": "dist/commands/exec.js:67",
+          "behavior": "Uses the same loader with skipLoadingEntryPoints=true; default initialization still executes."
+        },
+        {
+          "package": "@medusajs/core-flows@2.22.1",
+          "file": "dist/defaults/workflows/create-defaults.js:27",
+          "behavior": "Creates a default sales channel, Store and publishable API key when absent."
+        },
+        {
+          "package": "@medusajs/core-flows@2.22.1",
+          "file": "dist/defaults/steps/create-default-store.js:31",
+          "behavior": "Reads the first existing Store and creates one with default EUR currency only if absent."
+        }
+      ],
+      "acceptance_gap": "Parent must verify the actual authenticated /admin/stores response and native Admin page after deployment."
+    },
+    "migration_tls_diagnosis": {
+      "observed_by_parent": "Private Railway PostgreSQL 17-alpine service has no TLS; initial migrations table creation succeeded, separate module migration SELECT 1 probe timed out.",
+      "root_cause": "The shared PG loader uses ssl=false when driver options are absent. The modules SDK obtains fresh defaults for a non-localhostname and enables TLS for its dedicated migration lock connection.",
+      "source": [
+        {
+          "package": "@medusajs/framework@2.22.1",
+          "file": "dist/database/pg-connection-loader.js:34",
+          "behavior": "Empty project driver options reach shared connection factory."
+        },
+        {
+          "package": "@medusajs/utils@2.22.1",
+          "file": "dist/modules-sdk/create-pg-connection.js:12",
+          "behavior": "Factory SSL default is false unless specified."
+        },
+        {
+          "package": "@medusajs/utils@2.22.1",
+          "file": "dist/modules-sdk/load-module-database-config.js:13",
+          "behavior": "Remote host without explicit disable mode obtains SSL defaults."
+        },
+        {
+          "package": "@medusajs/modules-sdk@2.22.1",
+          "file": "dist/medusa-app.js:338",
+          "behavior": "Creates independent one-connection migration lock pool from resolved defaults; probe at line38 times out after10000ms."
+        }
+      ],
+      "verification": "Executed installed loadDatabaseConfig against synthetic railway.internal URL. Default yielded TLS; explicit sslmode=disable yielded ssl=false. No actual credentials or external network involved.",
+      "resolution": "Parent sets standard sslmode=disable only on the new private Railway service DATABASE_URL. No source patch, global SSL disable, increased timeout or broader access required.",
+      "acceptance_gap": "Parent must rerun isolated migration and verify deployed readiness; local reproduction verifies configuration selection only."
+    }
   },
   "remaining_risk": [
     "No local Docker daemon available: image runtime and database migration must be verified by the parent on isolated Railway resources.",
     "Native login, volume persistence and live readiness are separate parent acceptance steps.",
     "Actual payment providers, storefront and production deployment are not configured or tested.",
     "Local file provider is for the isolated development instance only."
-  ]
+  ],
+  "deployment_configuration": {
+    "mechanism": "Explicit Railway service settings, verified from effective deployment manifest",
+    "builder": "DOCKERFILE",
+    "dockerfile": "Dockerfile",
+    "healthcheck": "/health",
+    "predeploy": "pnpm exec medusa db:migrate --skip-scripts --execute-safe-links --execute-safe-search",
+    "legacy_config": "Removed newly introduced railway.json; not required by image or runtime"
+  }
 }
