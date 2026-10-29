@@ -48,3 +48,7 @@ Verification completed on 2026-10-30:
 - Required review is recorded in `plan/2026-10-30-hub-admin-sso-code-check.md`; no unresolved material source findings.
 
 No live credentials, infrastructure, or database changes were made. The parent task owns real OAuth registration/configuration, native operator mapping, deployment, and browser verification in both environments. An already-open Admin view relies on native routing to reach its login widget; every entry from Hub starts fresh authorization. Existing native MFA/verification requirements fail closed and require a separate intentional UI integration before such an operator can use this flow.
+
+## Coordinated runtime outcome
+
+The parent task completed production and development registration and rollout after this source implementation. Both real browser flows reached `/app/orders` through their same-environment Hub without entering either Hub or Medusa credentials. Anonymous native Admin reads return 401, and public raw-token login returns 403. Production bootstrap credentials were removed from runtime variables, and the final pre-deploy command only runs safe native migrations. Runtime source is `ad7481e62e9bd74c9529a46ba089262d8aa9b632`; current evidence is in `deploy/sso-verification.json`.

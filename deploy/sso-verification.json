@@ -1,0 +1,38 @@
+{
+  "schema": "medusa-hub-sso-verification-v1",
+  "verifiedAt": "2026-10-30",
+  "runtimeSourceCommit": "ad7481e62e9bd74c9529a46ba089262d8aa9b632",
+  "project": "Hub",
+  "projectId": "e5d3e22b-d8ad-445d-94e7-5ce832240098",
+  "environments": {
+    "development": {
+      "origin": "https://hub-medusa-dev.up.railway.app",
+      "browserOrigin": "https://hub-dev-console-dev.up.railway.app",
+      "issuer": "https://hub-dev-api-dev.up.railway.app/api/auth",
+      "deploymentId": "37b601e8-83a5-41d1-ad95-b671af8154bd",
+      "browserSsoVerified": true
+    },
+    "production": {
+      "origin": "https://hub-medusa-production-production.up.railway.app",
+      "browserOrigin": "https://hub-console-production.up.railway.app",
+      "issuer": "https://hub-console-production.up.railway.app/api/auth",
+      "deploymentId": "800dee13-9028-4b28-8998-b09e453a3a2b",
+      "browserSsoVerified": true
+    }
+  },
+  "anonymousAdminStatus": 401,
+  "publicRawTokenLoginStatus": 403,
+  "bootstrapVariablesRemoved": true,
+  "centralPasswordsEnteredDuringVerification": 0,
+  "medusaPasswordsEnteredDuringBrowserSso": 0,
+  "identityBinding": "Explicit issuer and subject to existing native operator",
+  "commerceBoundaryChanged": false,
+  "storefrontDeployed": false,
+  "livePaymentProviderConfigured": false,
+  "unitTestsPassed": 66,
+  "codeCheck": "No unresolved material findings",
+  "remainingRisk": [
+    "No overnight idle wait was performed.",
+    "Native MFA requirements fail closed; no extra MFA user interface was added."
+  ]
+}
