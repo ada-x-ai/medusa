@@ -1,10 +1,12 @@
 import { defineConfig, loadEnv } from "@medusajs/framework/utils"
 import { runtimeEnvironmentSchema } from "./src/lib/runtime-environment"
+import { identityConfiguration } from "./src/lib/identity/configuration"
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
 const environment = runtimeEnvironmentSchema.parse(process.env)
 const publicUrl = new URL(environment.MEDUSA_PUBLIC_URL)
+const identity = identityConfiguration()
 
 module.exports = defineConfig({
   projectConfig: {
@@ -18,9 +20,22 @@ module.exports = defineConfig({
       authCors: publicUrl.origin,
       jwtSecret: environment.JWT_SECRET,
       cookieSecret: environment.COOKIE_SECRET,
+      ...(identity ? {
+        authMethodsPerActor: { user: ["hub"], customer: ["emailpass"] },
+        requireActorAssociation: { hub: true },
+      } : {}),
     },
   },
   modules: [
+    ...(identity ? [{
+      resolve: "@medusajs/medusa/auth",
+      options: {
+        providers: [
+          { resolve: "@medusajs/medusa/auth-emailpass", id: "emailpass" },
+          { resolve: "./src/modules/hub-auth", id: "hub", options: identity },
+        ],
+      },
+    }] : []),
     {
       resolve: "@medusajs/medusa/event-bus-redis",
       options: { redisUrl: environment.REDIS_URL },

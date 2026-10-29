@@ -1,9 +1,21 @@
-import { configureStoreSearch, defineMiddlewares } from '@medusajs/framework/http'
+import { authenticate, configureStoreSearch, defineMiddlewares } from "@medusajs/framework/http"
+import { rejectHubTokenLogin, requireHubOperator } from "../lib/identity/session"
 
-// The product index declares filterable `status` and `sales_channel_ids`, so
-// the route narrows it to published products in the key's sales channels.
+// 商品索引按发布状态和当前密钥允许的销售渠道过滤。
 export default defineMiddlewares({
   routes: [
+    {
+      matcher: "/auth/:actor_type/:auth_provider",
+      method: ["GET", "POST"],
+      middlewares: [rejectHubTokenLogin],
+    },
+    {
+      matcher: "/admin/*",
+      middlewares: [
+        authenticate("user", ["session", "bearer", "api-key"]),
+        requireHubOperator,
+      ],
+    },
     {
       method: ['POST'],
       matcher: '/store/search',

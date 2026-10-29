@@ -168,6 +168,8 @@ claude mcp add --transport http medusa-cloud https://cloud.medusajs.com/mcp
 
 ## Configuration
 
+For same-environment Hub operator sign-in and automatic recovery after session expiry, see [Hub Admin sign-in](./docs/hub-admin-sso.md). The Hub entry uses `/identity/start`; commerce remains independent.
+
 The storefront is configured via environment variables in `apps/storefront/.env.local`:
 
 | Variable | Description | Default |
