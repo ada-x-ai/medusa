@@ -1,0 +1,118 @@
+{
+  "goal": "Deploy the official Medusa backend and native Admin as a standalone Hub development service, keeping all commerce and Hub billing flows separate.",
+  "approach": "Build only backend/Admin from frozen upstream dependencies; validate independent runtime settings; configure Redis modules and persistent development uploads; run safe migrations without upstream demo seeds; start compiled backend under node.",
+  "nodes": [
+    {
+      "symbol": "runtimeEnvironmentSchema",
+      "file": "apps/backend/src/lib/runtime-environment.ts:3",
+      "role": "model",
+      "change": "added"
+    },
+    {
+      "symbol": "Medusa configuration",
+      "file": "apps/backend/medusa-config.ts:6",
+      "role": "entrypoint",
+      "change": "modified"
+    },
+    {
+      "symbol": "defineConfig",
+      "file": "apps/backend/node_modules/@medusajs/framework/AGENTS.md",
+      "role": "external dependency",
+      "change": "unchanged context"
+    },
+    {
+      "symbol": "backend Docker build and runtime PATH",
+      "file": "Dockerfile:7",
+      "role": "entrypoint",
+      "change": "added"
+    },
+    {
+      "symbol": "safe migration command",
+      "file": "railway.json:9",
+      "role": "entrypoint",
+      "change": "added"
+    },
+    {
+      "symbol": "media volume privilege drop",
+      "file": "deploy/container-entrypoint.sh:4",
+      "role": "persistence",
+      "change": "added"
+    },
+    {
+      "symbol": "runtime boundary tests",
+      "file": "apps/backend/src/lib/__tests__/runtime-environment.unit.spec.ts:11",
+      "role": "test",
+      "change": "added"
+    }
+  ],
+  "edges": [
+    {
+      "from": "Medusa configuration",
+      "type": "reads",
+      "to": "runtimeEnvironmentSchema"
+    },
+    {
+      "from": "runtimeEnvironmentSchema",
+      "type": "verified_by",
+      "to": "runtime boundary tests"
+    },
+    {
+      "from": "backend Docker build and runtime PATH",
+      "type": "calls",
+      "to": "Medusa CLI build/start"
+    },
+    {
+      "from": "safe migration command",
+      "type": "calls",
+      "to": "Medusa CLI db:migrate --skip-scripts"
+    },
+    {
+      "from": "Medusa configuration",
+      "type": "persists",
+      "to": "independent PostgreSQL and Redis"
+    },
+    {
+      "from": "Medusa configuration",
+      "type": "persists",
+      "to": "media volume privilege drop"
+    }
+  ],
+  "verification": [
+    {
+      "command": "pnpm --filter @dtc/backend exec jest --runInBand --config jest.config.js src/lib/__tests__/runtime-environment.unit.spec.ts",
+      "result": "passed, 6 assertions/tests"
+    },
+    {
+      "command": "pnpm --filter @dtc/backend build with nonconnecting build-only settings",
+      "result": "passed backend and native Admin build"
+    },
+    {
+      "command": "pnpm --filter @dtc/backend exec eslint medusa-config.ts src/lib/runtime-environment.ts src/lib/__tests__/runtime-environment.unit.spec.ts",
+      "result": "0 errors, upstream ignores test source"
+    },
+    {
+      "command": "sh -n deploy/container-entrypoint.sh; git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "Compiled configuration require/assert from .medusa/server",
+      "result": "passed shared mode, same-origin Admin/Auth, no storefront origin, Redis/file registrations"
+    },
+    {
+      "command": "PATH=<backend-node_modules-bin>:$PATH pnpm exec medusa --help from compiled cwd",
+      "result": "passed; without explicit PATH failed, fixed Dockerfile line17"
+    }
+  ],
+  "review": {
+    "first_pass": "No commerce API or core changes; default seeds are explicitly skipped. Existing storefront and upstream lockfile untouched. Runtime secrets independent and minimum 32 characters.",
+    "fixed_finding": "Explicitly preserve backend CLI bin PATH in compiled working directory. Use the actual telemetry variable MEDUSA_DISABLE_TELEMETRY.",
+    "second_pass": "All authored source under 400 lines. Frozen packages unchanged. No Hub billing imports, credentials, transaction mapping or SSO added. Start and migration use the same compiled config; persistent static directory assigned to node before dropping privilege.",
+    "open_findings": []
+  },
+  "remaining_risk": [
+    "No local Docker daemon available: image runtime and database migration must be verified by the parent on isolated Railway resources.",
+    "Native login, volume persistence and live readiness are separate parent acceptance steps.",
+    "Actual payment providers, storefront and production deployment are not configured or tested.",
+    "Local file provider is for the isolated development instance only."
+  ]
+}

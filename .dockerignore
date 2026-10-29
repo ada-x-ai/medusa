@@ -1,0 +1,11 @@
+.git
+node_modules
+**/node_modules
+**/.medusa
+**/.env
+**/.env.local
+**/.env.*.local
+apps/storefront
+.runtime
+plan
+.turbo
